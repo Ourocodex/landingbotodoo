@@ -1,5 +1,5 @@
 # Stage 1: PHP Dependencies Builder (Composer)
-FROM composer:2.8 as builder
+FROM composer:2.8 as php
 WORKDIR /app
 COPY database/ composer.json composer.lock./
 RUN composer install --no-dev --no-interaction --optimize-autoloader --no-progress --prefer-dist
@@ -34,7 +34,7 @@ RUN install-php-extensions pdo_sqlite redis bcmath exif pcntl gd zip
 COPY docker/php/php.local.ini /usr/local/etc/php/conf.d/local.ini
 
 # Copy artifacts from previous stages
-COPY --from=builder /app /var/www
+COPY --from=php /app /var/www
 COPY --from=frontend /app/public/build /var/www/public/build
 
 # Set proper permissions
