@@ -22,19 +22,6 @@ services:
     networks:
       - laravel-network
 
-  # Nginx Service
-  nginx:
-    image: nginx:alpine
-    container_name: laravel_nginx
-    restart: unless-stopped
-    ports:
-      - "8069:8069"
-    volumes:
-      - .:/var/www
-      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/app.conf
-    networks:
-      - laravel-network
-
   # Redis Service
   redis:
     image: redis:alpine
