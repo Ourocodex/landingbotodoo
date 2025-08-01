@@ -10,7 +10,8 @@ RUN apk add --no-cache \
     libzip-dev \
     nodejs npm \
     git \
-    sqlite-dev
+    sqlite-dev \
+    autoconf
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_sqlite bcmath exif pcntl gd zip
