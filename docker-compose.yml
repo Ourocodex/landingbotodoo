@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: php
+    container_name: landingbot_app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+      # Laravel-specific environment variables
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /var/www/database/database.sqlite
+      CACHE_DRIVER: redis # Using redis driver for Valkey
+      REDIS_HOST: cache
+      REDIS_PORT: 6379
+      SESSION_DRIVER: redis # Using redis driver for Valkey
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - sqlite_data:/var/www/database
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - app-network
+
+  # Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: landingbot_webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+      - "5173:5173"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+
+  # Valkey Cache Service
+  cache:
+    image: valkey/valkey:7.2-alpine
+    container_name: landingbot_cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+# Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  sqlite_data:
+    driver: local
