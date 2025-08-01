@@ -18,7 +18,7 @@ services:
     volumes:
       - .:/var/www
     ports:
-      - "8069:9000"  # Exposed for Cloudflare tunnel
+      - "8069:8069"  # Exposed for Cloudflare tunnel
     networks:
       - laravel-network
 
