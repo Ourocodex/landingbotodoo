@@ -34,7 +34,7 @@ RUN npm install && npm run build
 RUN chown -R appuser:appgroup /var/www
 
 # Copy PHP configuration
-COPY docker/php/php.local.ini /usr/local/etc/php/conf.d/local.ini
+COPY docker/php/local.ini /usr/local/etc/php/conf.d/local.ini
 
 # Switch to non-root user
 USER appuser
