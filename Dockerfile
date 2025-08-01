@@ -47,5 +47,5 @@ RUN php artisan route:cache
 RUN php artisan view:cache
 
 # Expose port
-EXPOSE 8069
+EXPOSE 9000
 CMD ["php-fpm"]
