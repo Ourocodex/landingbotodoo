@@ -48,5 +48,5 @@ COPY --chown=www:www . /var/www
 
 USER www
 
-EXPOSE 9000
+EXPOSE 8070
 CMD ["php-fpm"]
