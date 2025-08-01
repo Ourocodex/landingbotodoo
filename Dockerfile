@@ -1,52 +1,50 @@
-# Base image for both stages
-FROM php:8.3-fpm as base
+# Etapa 1: Constructor de Dependencias de PHP (Composer)
+FROM composer:2.8 as builder
+WORKDIR /app
+COPY database/ composer.json composer.lock./
+RUN composer install --no-dev --no-interaction --optimize-autoloader --no-progress --prefer-dist
+COPY . .
+RUN php artisan key:generate --force
+RUN php artisan config:cache
+RUN php artisan route:cache
+RUN php artisan view:cache
 
+# Etapa 2: Constructor de Activos Frontend (Node.js)
+FROM node:22-alpine as frontend
+WORKDIR /app
+COPY package.json package-lock.json./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Etapa 3: Imagen Final de Producción
+FROM php:8.3-fpm-alpine
 WORKDIR /var/www
 
-# Install base dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    locales \
-    zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
-    unzip \
-    git \
-    curl \
-    libzip-dev \
-    libonig-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Crear un usuario y grupo no-root para la aplicación por seguridad
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl redis
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install gd
+# Instalar el instalador de extensiones de PHP para una gestión más limpia
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Instalar dependencias del sistema y extensiones de PHP necesarias para Laravel
+# bcmath, exif, pcntl, gd, zip son comunes en proyectos Laravel
+# pdo_sqlite para la base de datos y redis para el caché/colas
+RUN install-php-extensions pdo_sqlite redis bcmath exif pcntl gd zip
 
-# Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+# Copiar configuración personalizada de PHP
+COPY docker/php/php.local.ini /usr/local/etc/php/conf.d/local.ini
 
-# ---------------------------------------
-# Development stage
-# ---------------------------------------
-FROM base as dev
+# Copiar artefactos de las etapas anteriores
+COPY --from=builder /app /var/www
+COPY --from=frontend /app/public/build /var/www/public/build
 
-USER www
+# Establecer permisos correctos para el usuario de la aplicación
+RUN chown -R appuser:appgroup /var/www
 
-# ---------------------------------------
-# Production stage
-# ---------------------------------------
-FROM base as php
+# Cambiar al usuario no-root
+USER appuser
 
-COPY --chown=www:www . /var/www
-
-USER www
-
-EXPOSE 8070
+# Exponer el puerto de PHP-FPM
+EXPOSE 9000
 CMD ["php-fpm"]
