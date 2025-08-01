@@ -1,19 +1,29 @@
 services:
-  # Servicio de la Aplicación PHP
+  # PHP Service
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production # Especifica que se debe construir la etapa final 'production'
+      target: production
     container_name: laravel_app
     restart: unless-stopped
     working_dir: /var/www
+    environment:
+      APP_ENV: production
+      APP_DEBUG: false
+      CACHE_DRIVER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SESSION_DRIVER: redis
+      SESSION_LIFETIME: 120
     volumes:
       - .:/var/www
+    ports:
+      - "8069:9000"  # Exposed for Cloudflare tunnel
     networks:
       - laravel-network
 
-  # Servidor Web Nginx
+  # Nginx Service
   nginx:
     image: nginx:alpine
     container_name: laravel_nginx
@@ -26,7 +36,7 @@ services:
     networks:
       - laravel-network
 
-  # Servicio de Redis
+  # Redis Service
   redis:
     image: redis:alpine
     container_name: laravel_redis
