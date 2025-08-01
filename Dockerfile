@@ -9,10 +9,11 @@ RUN apk add --no-cache \
     freetype-dev \
     libzip-dev \
     nodejs npm \
-    git
+    git \
+    sqlite-dev
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql sqite3 bcmath exif pcntl gd zip
+RUN docker-php-ext-install pdo pdo_sqlite bcmath exif pcntl gd zip
 RUN pecl install redis && docker-php-ext-enable redis
 
 # Install Composer
