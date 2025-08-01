@@ -4,7 +4,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+<<<<<<< HEAD
       target: php
+=======
+      target: production
+>>>>>>> origin/main
     container_name: laravel_app
     restart: unless-stopped
     working_dir: /var/www
