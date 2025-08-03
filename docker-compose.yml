@@ -21,6 +21,13 @@ services:
       - "8069:8069"  # Exposed for Cloudflare tunnel
     networks:
       - laravel-network
+    
+  Cloudflared:
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=eyJhIjoiNTJjOTE1MTY4MTRiMTA3MThiMWM1OGE5ODI3MjE0NzUiLCJ0IjoiYjM1ZTUxMzctZjRhNy00M2UwLTgwYTktYTc2ODliMWQ1YjEzIiwicyI6Illqa3haVFprWTJRdE9XVXpOeTAwWW1RMkxXRmhPVEF0TmpsbE5qYzVPVFkxTkRObSJ9
 
   # Redis Service
   redis:
